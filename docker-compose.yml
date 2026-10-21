@@ -1,0 +1,39 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: findit
+      POSTGRES_PASSWORD: findit
+      POSTGRES_DB: findit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U findit -d findit"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://findit:findit@db:5432/findit
+      SECRET_KEY: dev-only-change-me
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      PUBLIC_BASE_URL: http://localhost:8000
+      EMBEDDING_BACKEND: demo
+      MIN_MATCH_SCORE: "10"   # low on purpose so the demo shows ranked near-misses; use ~30 in production
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    # Seeds demo data once (idempotent), then starts the API.
+    command: sh -c "python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  pgdata:
+  uploads:

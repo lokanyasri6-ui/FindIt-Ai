@@ -1,0 +1,6 @@
+# Optional: real embedding models (EMBEDDING_BACKEND=real)
+# CLIP image embeddings (clip-ViT-B-32, 512-d) + SentenceTransformer text embeddings (all-MiniLM-L6-v2, 384-d)
+sentence-transformers>=3.0
+
+# Optional: S3 image storage (STORAGE_BACKEND=s3)
+boto3>=1.34
